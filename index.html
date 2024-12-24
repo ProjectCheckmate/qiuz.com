@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Quiz Show</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-top: 20px;
+            color: #f9a826;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin: 20px 0;
+        }
+
+        p {
+            font-size: 1.2rem;
+        }
+
+        /* Timer Styling */
+        #timer {
+            margin: 10px 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: #f9a826;
+            color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            width: fit-content;
+            margin: 10px auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Options Styling */
+        #options div {
+            margin: 10px 0;
+            padding: 15px;
+            background: #fff;
+            color: #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #options div:hover {
+            background: #f9a826;
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        /* Button Styling */
+        button {
+            padding: 12px 20px;
+            background: #f9a826;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            margin: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background: #ff7f50;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Lifelines Styling */
+        #lifelines {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Feedback Styling */
+        #feedback {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+                padding: 10px 15px;
+            }
+
+            #options div {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>The Ultimate Quiz Show</h1>
+
+    <!-- Timer -->
+    <div id="timer">
+        <p>Time Left: <span id="timeLeft">30</span> seconds</p>
+    </div>
+
+    <!-- Question Display -->
+    <div id="question">
+        <h2>Level 1</h2>
+        <p>What is the capital of France?</p>
+    </div>
+
+    <!-- Answer Options -->
+    <div id="options">
+        <div><input type="radio" name="answer" id="option1"> Paris</div>
+        <div><input type="radio" name="answer" id="option2"> London</div>
+        <div><input type="radio" name="answer" id="option3"> Rome</div>
+        <div><input type="radio" name="answer" id="option4"> Berlin</div>
+    </div>
+
+    <!-- Lifelines -->
+    <div id="lifelines">
+        <button id="fiftyFifty" onclick="useFiftyFifty()">50:50</button>
+        <button id="skip" onclick="skipQuestion()">Skip Question</button>
+        <button id="askFriend" onclick="askAFriend()">Ask a Friend</button>
+    </div>
+
+    <!-- Submit Answer Button -->
+    <button id="submit" onclick="nextQuestion()">Submit Answer</button>
+
+    <!-- Score Display -->
+    <div id="score">
+        <h3>Score: <span id="scoreValue">0</span></h3>
+    </div>
+
+    <!-- Feedback Message -->
+    <div id="feedback"></div>
+
+    <script>
+        let currentLevel = 1;
+        let score = 0;
+        let timeLeft = 30;
+        let timer;
+        let fiftyFiftyUsed = false;
+        let skipUsed = false;
+        let askFriendUsed = false;
+
+        const questions = [
+            { question: "What is the capital of France?", options: ["Paris", "London", "Rome", "Berlin"], answer: "Paris" },
+            { question: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Venus", "Jupiter"], answer: "Mars" },
+            { question: "Who wrote 'Hamlet'?", options: ["Shakespeare", "Dickens", "Hemingway", "Austen"], answer: "Shakespeare" },
+            { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: "Pacific" },
+            { question: "Who invented the light bulb?", options: ["Einstein", "Tesla", "Edison", "Bell"], answer: "Edison" },
+            { question: "What is the square root of 64?", options: ["6", "7", "8", "9"], answer: "8" },
+            { question: "What is the chemical symbol for water?", options: ["H2O", "O2", "CO2", "HO2"], answer: "H2O" },
+            { question: "Which country is known as the Land of the Rising Sun?", options: ["China", "Japan", "Thailand", "India"], answer: "Japan" },
+            { question: "Who painted the Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Michelangelo"], answer: "Da Vinci" },
+            { question: "What is the largest mammal?", options: ["Elephant", "Blue Whale", "Giraffe", "Shark"], answer: "Blue Whale" },
+            { question: "What is the capital of Italy?", options: ["Rome", "Milan", "Venice", "Naples"], answer: "Rome" },
+            { question: "Which element has the chemical symbol 'O'?", options: ["Oxygen", "Osmium", "Gold", "Silver"], answer: "Oxygen" },
+            { question: "What is 5 + 3?", options: ["6", "7", "8", "9"], answer: "8" },
+            { question: "What is the capital of Germany?", options: ["Berlin", "Munich", "Hamburg", "Frankfurt"], answer: "Berlin" },
+            { question: "Who discovered gravity?", options: ["Newton", "Einstein", "Galileo", "Hawking"], answer: "Newton" },
+            { question: "Which planet is the largest in the solar system?", options: ["Earth", "Saturn", "Jupiter", "Neptune"], answer: "Jupiter" },
+            { question: "What is the smallest prime number?", options: ["1", "2", "3", "5"], answer: "2" },
+            { question: "What is the boiling point of water?", options: ["90°C", "100°C", "110°C", "120°C"], answer: "100°C" },
+            { question: "Which gas do plants absorb during photosynthesis?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], answer: "Carbon Dioxide" },
+            { question: "What is the capital of Spain?", options: ["Barcelona", "Madrid", "Seville", "Valencia"], answer: "Madrid" },
+            { question: "What is the longest river in the world?", options: ["Nile", "Amazon", "Yangtze", "Mississippi"], answer: "Nile" },
+            { question: "Who was the first president of the United States?", options: ["Lincoln", "Jefferson", "Washington", "Adams"], answer: "Washington" },
+            { question: "What is the smallest country in the world?", options: ["Monaco", "Vatican City", "San Marino", "Liechtenstein"], answer: "Vatican City" },
+            { question: "What is the national language of Brazil?", options: ["Spanish", "Portuguese", "English", "French"], answer: "Portuguese" },
+            { question: "Who discovered penicillin?", options: ["Fleming", "Pasteur", "Curie", "Salk"], answer: "Fleming" },
+            { question: "What is the capital of Canada?", options: ["Toronto", "Vancouver", "Ottawa", "Montreal"], answer: "Ottawa" },
+            { question: "Which metal is liquid at room temperature?", options: ["Mercury", "Gold", "Silver", "Iron"], answer: "Mercury" },
+            { question: "What is the hardest natural substance on Earth?", options: ["Diamond", "Gold", "Iron", "Quartz"], answer: "Diamond" },
+            { question: "Who developed the theory of relativity?", options: ["Newton", "Einstein", "Galileo", "Tesla"], answer: "Einstein" },
+            { question: "What is the capital of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Perth"], answer: "Canberra" },
+            { question: "Which country is known for the Eiffel Tower?", options: ["Italy", "France", "Spain", "Germany"], answer: "France" },
+            { question: "What is the capital of Japan?", options: ["Tokyo", "Osaka", "Kyoto", "Nagoya"], answer: "Tokyo" },
+            { question: "Who wrote 'Pride and Prejudice'?", options: ["Austen", "Bronte", "Dickens", "Hemingway"], answer: "Austen" },
+            { question: "What is the largest desert in the world?", options: ["Sahara", "Gobi", "Kalahari", "Arctic"], answer: "Sahara" },
+            { question: "What is the capital of Russia?", options: ["Moscow", "St. Petersburg", "Novosibirsk", "Kazan"], answer: "Moscow" },
+            { question: "Who is known as the father of computers?", options: ["Turing", "Babbage", "Gates", "Jobs"], answer: "Babbage" },
+            { question: "What is the capital of South Africa?", options: ["Pretoria", "Cape Town", "Johannesburg", "Durban"], answer: "Pretoria" },
+            { question: "What is the national flower of Japan?", options: ["Cherry Blossom", "Lotus", "Rose", "Tulip"], answer: "Cherry Blossom" },
+            { question: "What is the tallest mountain in the world?", options: ["K2", "Mount Everest", "Kangchenjunga", "Makalu"], answer: "Mount Everest" },
+            { question: "What is the capital of India?", options: ["Mumbai", "Delhi", "Bangalore", "Chennai"], answer: "Delhi" },
+            { question: "What is the chemical symbol for gold?", options: ["Au", "Ag", "Fe", "Pb"], answer: "Au" },
+            { question: "Who painted the ceiling of the Sistine Chapel?", options: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Donatello"], answer: "Michelangelo" },
+            { question: "What is the capital of the USA?", options: ["New York", "Los Angeles", "Washington, D.C.", "Chicago"], answer: "Washington, D.C." },
+            { question: "Who is known as the father of modern physics?", options: ["Isaac Newton", "Albert Einstein", "Galileo Galilei", "Niels Bohr"], answer: "Albert Einstein" },
+            { question: "What is the largest bone in the human body?", options: ["Femur", "Humerus", "Tibia", "Skull"], answer: "Femur" },
+            { question: "Which country is famous for the Great Wall?", options: ["Japan", "India", "China", "Korea"], answer: "China" },
+            { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Diamond", "Iron", "Platinum"], answer: "Diamond" },
+            { question: "Who is the author of 'Harry Potter'?", options: ["J.R.R. Tolkien", "George R.R. Martin", "J.K. Rowling", "Suzanne Collins"], answer: "J.K. Rowling" },
+            { question: "What is the freezing point of water?", options: ["0°C", "32°C", "100°C", "212°C"], answer: "0°C" },
+            { question: "What is the smallest planet in the solar system?", options: ["Mercury", "Venus", "Mars", "Pluto"], answer: "Mercury" },
+            { question: "Who discovered America?", options: ["Christopher Columbus", "Ferdinand Magellan", "Marco Polo", "Vasco da Gama"], answer: "Christopher Columbus" },
+            { question: "What is the chemical symbol for sodium?", options: ["Na", "S", "So", "Sn"], answer: "Na" },
+            { question: "What is the largest continent on Earth?", options: ["Africa", "Asia", "Europe", "North America"], answer: "Asia" },
+            { question: "Who wrote 'Romeo and Juliet'?", options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"], answer: "William Shakespeare" },
+            { question: "What is the speed of light?", options: ["300,000 km/s", "150,000 km/s", "450,000 km/s", "600,000 km/s"], answer: "300,000 km/s" },
+            { question: "What is the currency of Japan?", options: ["Yuan", "Won", "Dollar", "Yen"], answer: "Yen" },
+            { question: "Which gas is essential for breathing?", options: ["Nitrogen", "Oxygen", "Carbon Dioxide", "Hydrogen"], answer: "Oxygen" },
+            { question: "Which is the largest organ in the human body?", options: ["Heart", "Brain", "Liver", "Skin"], answer: "Skin" },
+            { question: "Who invented the telephone?", options: ["Alexander Graham Bell", "Thomas Edison", "Nikola Tesla", "Guglielmo Marconi"], answer: "Alexander Graham Bell" },
+            { question: "What is the boiling point of water in Fahrenheit?", options: ["100°F", "212°F", "180°F", "200°F"], answer: "212°F" },
+            { question: "Which planet is closest to the Sun?", options: ["Venus", "Earth", "Mercury", "Mars"], answer: "Mercury" },
+            { question: "Who is the author of 'The Lord of the Rings'?", options: ["C.S. Lewis", "J.K. Rowling", "J.R.R. Tolkien", "George Orwell"], answer: "J.R.R. Tolkien" },
+            { question: "What is the chemical formula for salt?", options: ["H2O", "CO2", "NaCl", "KCl"], answer: "NaCl" },
+            { question: "Which country hosted the 2020 Summer Olympics?", options: ["USA", "China", "Japan", "Brazil"], answer: "Japan" },
+            { question: "What is the national bird of the United States?", options: ["Eagle", "Sparrow", "Hawk", "Falcon"], answer: "Eagle" },
+            { question: "What is the smallest unit of life?", options: ["Atom", "Molecule", "Cell", "Organ"], answer: "Cell" },
+            { question: "What is the capital of South Korea?", options: ["Seoul", "Tokyo", "Beijing", "Bangkok"], answer: "Seoul" },
+            { question: "What is the chemical symbol for iron?", options: ["Ir", "Fe", "I", "In"], answer: "Fe" },
+            { question: "Who painted 'The Starry Night'?", options: ["Pablo Picasso", "Vincent van Gogh", "Claude Monet", "Leonardo da Vinci"], answer: "Vincent van Gogh" },
+            { question: "What is the capital of Brazil?", options: ["Rio de Janeiro", "Brasilia", "São Paulo", "Salvador"], answer: "Brasilia" },
+            { question: "What is the hardest part of the human body?", options: ["Bone", "Teeth", "Nails", "Cartilage"], answer: "Teeth" },
+            { question: "Which element is known as the king of chemicals?", options: ["Hydrogen", "Oxygen", "Sulfuric Acid", "Chlorine"], answer: "Sulfuric Acid" }
+
+        ];
+
+        function loadQuestion(level) {
+            const questionData = questions[level - 1];
+            document.getElementById("question").innerHTML = `<h2>Level ${level}</h2><p>${questionData.question}</p>`;
+            const options = document.getElementById("options").children;
+            for (let i = 0; i < options.length; i++) {
+                options[i].innerHTML = `<input type="radio" name="answer" id="option${i + 1}"> ${questionData.options[i]}`;
+                options[i].style.display = "block";
+            }
+            startTimer();
+        }
+
+        function useFiftyFifty() {
+            if (fiftyFiftyUsed) return;
+            fiftyFiftyUsed = true;
+            document.getElementById("fiftyFifty").disabled = true;
+
+            const questionData = questions[currentLevel - 1];
+            const correctAnswer = questionData.answer;
+            const options = document.getElementById("options").children;
+            let hidden = 0;
+
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].textContent.trim() !== correctAnswer && hidden < 2) {
+                    options[i].style.display = "none";
+                    hidden++;
+                }
+            }
+        }
+
+        function skipQuestion() {
+            if (skipUsed) return;
+            skipUsed = true;
+            document.getElementById("skip").disabled = true;
+            nextQuestion();
+        }
+
+        function askAFriend() {
+            if (askFriendUsed) return;
+            askFriendUsed = true;
+            document.getElementById("askFriend").disabled = true;
+            displayFeedback("Your friend thinks the answer is: " + questions[currentLevel - 1].answer);
+        }
+
+        function startTimer() {
+            document.getElementById("timeLeft").textContent = timeLeft;
+            if (timer) clearInterval(timer);
+            timer = setInterval(function () {
+                timeLeft--;
+                document.getElementById("timeLeft").textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            const selectedOption = document.querySelector('input[name="answer"]:checked');
+            if (selectedOption) {
+                const userAnswer = selectedOption.nextSibling.nodeValue.trim();
+                const correctAnswer = questions[currentLevel - 1].answer;
+                if (userAnswer === correctAnswer) {
+                    score++;
+                    displayFeedback("Correct!");
+                } else {
+                    displayFeedback("Incorrect!");
+                }
+            } else {
+                displayFeedback("No answer selected!");
+            }
+            currentLevel++;
+            if (currentLevel > questions.length) {
+                displayFeedback("Game Over! Final Score: " + score);
+                document.getElementById("submit").disabled = true;
+            } else {
+                document.getElementById("scoreValue").textContent = score;
+                timeLeft = 30;
+                loadQuestion(currentLevel);
+            }
+        }
+
+        function displayFeedback(message) {
+            document.getElementById("feedback").textContent = message;
+        }
+
+        loadQuestion(currentLevel);
+    </script>
+</body>
+
+</html>
